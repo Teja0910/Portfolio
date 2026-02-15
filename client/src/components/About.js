@@ -2,7 +2,7 @@ import React from 'react';
 
 function About() {
   const stats = [
-    { number: '6+', label: 'Months Experience' },
+    { number: '1+', label: 'Years Experience' },
     { number: '3+', label: 'Major Projects' },
     { number: '30%', label: 'Efficiency Boost' },
     { number: '70+', label: 'Team Members Impacted' }

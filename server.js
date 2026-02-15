@@ -34,6 +34,28 @@ const visitorSchema = new mongoose.Schema({
 
 const Visitor = mongoose.model('Visitor', visitorSchema);
 
+// Suggestion Schema
+const suggestionSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        default: 'Anonymous'
+    },
+    email: {
+        type: String,
+        default: 'Not provided'
+    },
+    suggestion: {
+        type: String,
+        required: true
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
+    }
+});
+
+const Suggestion = mongoose.model('Suggestion', suggestionSchema);
+
 // Initialize visitor counter if it doesn't exist
 const initializeVisitorCounter = async () => {
     try {
@@ -79,7 +101,52 @@ app.post('/api/visitors/increment', async (req, res) => {
             message: 'Visitor count incremented successfully' 
         });
     } catch (error) {
+        console.error('Error incrementing visitor count:', error);
         res.status(500).json({ error: 'Error incrementing visitor count' });
+    }
+});
+
+// Submit suggestion
+app.post('/api/suggestions', async (req, res) => {
+    try {
+        const { name, email, suggestion } = req.body;
+        
+        if (!suggestion || !suggestion.trim()) {
+            return res.status(400).json({ error: 'Suggestion is required' });
+        }
+
+        const newSuggestion = await Suggestion.create({
+            name: name || 'Anonymous',
+            email: email || 'Not provided',
+            suggestion: suggestion.trim()
+        });
+
+        console.log('📝 New suggestion received:', {
+            name: newSuggestion.name,
+            suggestion: newSuggestion.suggestion
+        });
+
+        res.json({ 
+            success: true,
+            message: 'Suggestion submitted successfully',
+            data: newSuggestion
+        });
+    } catch (error) {
+        console.error('Error submitting suggestion:', error);
+        res.status(500).json({ error: 'Error submitting suggestion' });
+    }
+});
+
+// Get all suggestions (for admin)
+app.get('/api/suggestions', async (req, res) => {
+    try {
+        const suggestions = await Suggestion.find().sort({ createdAt: -1 });
+        res.json({ 
+            count: suggestions.length,
+            suggestions 
+        });
+    } catch (error) {
+        res.status(500).json({ error: 'Error fetching suggestions' });
     }
 });
 
