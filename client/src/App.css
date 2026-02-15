@@ -782,3 +782,53 @@ footer p {
     grid-template-columns: 1fr;
   }
 }
+
+/* Add these styles to your existing App.css */
+
+/* Navigation button styles */
+nav ul li button,
+.mobile-nav ul li button {
+  background: none;
+  border: none;
+  color: var(--netflix-light-gray);
+  font-size: 0.95em;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: 'Roboto', sans-serif;
+  padding: 0;
+  transition: color 0.3s ease;
+  position: relative;
+}
+
+nav ul li button:hover,
+.mobile-nav ul li button:hover {
+  color: white;
+}
+
+nav ul li button::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--netflix-red);
+  transition: width 0.3s ease;
+}
+
+nav ul li button:hover::after {
+  width: 100%;
+}
+
+.mobile-nav ul li button {
+  width: 100%;
+  text-align: left;
+  font-size: 1.2em;
+  padding: 10px;
+  transition: all 0.3s ease;
+}
+
+.mobile-nav ul li button:hover {
+  color: var(--netflix-red);
+  transform: translateX(10px);
+}
