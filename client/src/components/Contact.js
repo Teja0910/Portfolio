@@ -10,22 +10,42 @@ function Contact() {
   const [submitting, setSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState('');
 
-  // Use environment variable or default to localhost
+  // IMPORTANT: Uses environment variable for production, localhost for development
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
   useEffect(() => {
     // Fetch current visitor count and increment it
     const fetchAndIncrementVisitorCount = async () => {
       try {
+        console.log('Attempting to connect to:', `${API_URL}/api/visitors/increment`);
+        
         // Increment the visitor count
-        const response = await axios.post(`${API_URL}/api/visitors/increment`);
+        const response = await axios.post(`${API_URL}/api/visitors/increment`, {}, {
+          timeout: 10000, // 10 second timeout
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        console.log('Visitor count response:', response.data);
         setVisitorCount(response.data.count);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching visitor count:', error);
+        console.error('API URL:', API_URL);
+        
+        // Show error details
+        if (error.response) {
+          console.error('Response error:', error.response.data);
+        } else if (error.request) {
+          console.error('No response received');
+        } else {
+          console.error('Request setup error:', error.message);
+        }
+        
         setLoading(false);
-        // Set a default count if API fails
-        setVisitorCount(0);
+        // Set a placeholder message
+        setVisitorCount('—');
       }
     };
 
@@ -48,6 +68,8 @@ function Contact() {
         name: suggestionName || 'Anonymous',
         email: suggestionEmail || 'Not provided',
         suggestion: suggestion
+      }, {
+        timeout: 10000
       });
 
       if (response.data.success) {
@@ -58,8 +80,8 @@ function Contact() {
       }
     } catch (error) {
       console.error('Error submitting suggestion:', error);
+      // Still show success to user (fallback)
       setSubmitMessage('Thanks! Your suggestion has been noted. ✅');
-      // Clear form even on error so user knows it was received
       setSuggestion('');
       setSuggestionName('');
       setSuggestionEmail('');
@@ -158,9 +180,12 @@ function Contact() {
           {loading ? (
             <div className="loading"></div>
           ) : (
-            <div className="visitor-count">{visitorCount.toLocaleString()}</div>
+            <div className="visitor-count">{typeof visitorCount === 'number' ? visitorCount.toLocaleString() : visitorCount}</div>
           )}
           <p>Thank you for visiting my portfolio!</p>
+          {visitorCount === '—' && (
+            <p className="visitor-note">Backend deployment in progress...</p>
+          )}
         </div>
       </div>
     </section>
