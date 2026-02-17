@@ -4,6 +4,7 @@ import axios from 'axios';
 function Contact() {
   const [visitorCount, setVisitorCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [isNewVisitor, setIsNewVisitor] = useState(false);
   const [suggestion, setSuggestion] = useState('');
   const [suggestionName, setSuggestionName] = useState('');
   const [suggestionEmail, setSuggestionEmail] = useState('');
@@ -14,14 +15,14 @@ function Contact() {
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
   useEffect(() => {
-    // Fetch current visitor count and increment it
+    // Fetch current visitor count and increment if new IP
     const fetchAndIncrementVisitorCount = async () => {
       try {
         console.log('Attempting to connect to:', `${API_URL}/api/visitors/increment`);
         
-        // Increment the visitor count
+        // Increment the visitor count (backend checks if IP is unique)
         const response = await axios.post(`${API_URL}/api/visitors/increment`, {}, {
-          timeout: 10000, // 10 second timeout
+          timeout: 10000,
           headers: {
             'Content-Type': 'application/json'
           }
@@ -29,12 +30,19 @@ function Contact() {
         
         console.log('Visitor count response:', response.data);
         setVisitorCount(response.data.count);
+        setIsNewVisitor(response.data.isNewVisitor);
         setLoading(false);
+        
+        // Log if it's a new visitor
+        if (response.data.isNewVisitor) {
+          console.log('✨ Welcome! You are a new unique visitor!');
+        } else {
+          console.log('👋 Welcome back!');
+        }
       } catch (error) {
         console.error('Error fetching visitor count:', error);
         console.error('API URL:', API_URL);
         
-        // Show error details
         if (error.response) {
           console.error('Response error:', error.response.data);
         } else if (error.request) {
@@ -44,7 +52,6 @@ function Contact() {
         }
         
         setLoading(false);
-        // Set a placeholder message
         setVisitorCount('—');
       }
     };
@@ -80,7 +87,6 @@ function Contact() {
       }
     } catch (error) {
       console.error('Error submitting suggestion:', error);
-      // Still show success to user (fallback)
       setSubmitMessage('Thanks! Your suggestion has been noted. ✅');
       setSuggestion('');
       setSuggestionName('');
@@ -176,15 +182,22 @@ function Contact() {
 
         {/* Visitor Counter */}
         <div className="visitor-counter">
-          <h3>Portfolio Visitors</h3>
+          <h3>Unique Portfolio Visitors</h3>
           {loading ? (
             <div className="loading"></div>
           ) : (
-            <div className="visitor-count">{typeof visitorCount === 'number' ? visitorCount.toLocaleString() : visitorCount}</div>
+            <>
+              <div className="visitor-count">
+                {typeof visitorCount === 'number' ? visitorCount.toLocaleString() : visitorCount}
+              </div>
+              {isNewVisitor && (
+                <p className="welcome-message">🎉 Welcome! You're visitor #{visitorCount}!</p>
+              )}
+            </>
           )}
           <p>Thank you for visiting my portfolio!</p>
           {visitorCount === '—' && (
-            <p className="visitor-note">Backend deployment in progress...</p>
+            <p className="visitor-note">Connecting to server...</p>
           )}
         </div>
       </div>
